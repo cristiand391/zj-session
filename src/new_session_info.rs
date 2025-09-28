@@ -58,10 +58,16 @@ impl NewSessionInfo {
             },
         }
     }
-    pub fn handle_break(&mut self) {
+    pub fn handle_break(&mut self, is_welcome_screen: bool) {
         match self.entering_new_session_info {
             EnteringState::EnteringName => {
-                self.name.clear();
+                if self.name.is_empty() {
+                    if !is_welcome_screen {
+                        hide_self();
+                    }
+                } else {
+                    self.name.clear();
+                }
             },
             EnteringState::EnteringLayoutSearch => {
                 self.layout_list.layout_search_term.clear();
@@ -70,16 +76,16 @@ impl NewSessionInfo {
             },
         }
     }
-    pub fn handle_key(&mut self, key: KeyWithModifier) {
+    pub fn handle_key(&mut self, key: KeyWithModifier, is_welcome_screen: bool) {
         match key.bare_key {
             BareKey::Backspace if key.has_no_modifiers() => {
                 self.handle_backspace();
             },
             BareKey::Char('c') if key.has_modifiers(&[KeyModifier::Ctrl]) => {
-                self.handle_break();
+                self.handle_break(is_welcome_screen);
             },
             BareKey::Esc if key.has_no_modifiers() => {
-                self.handle_break();
+                self.handle_break(is_welcome_screen);
             },
             BareKey::Char(character) if key.has_no_modifiers() => {
                 self.add_char(character);

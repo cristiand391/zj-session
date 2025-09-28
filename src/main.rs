@@ -204,11 +204,11 @@ impl State {
         let mut should_render = false;
         match key.bare_key {
             BareKey::Down if key.has_no_modifiers() => {
-                self.new_session_info.handle_key(key);
+                self.new_session_info.handle_key(key, self.is_welcome_screen);
                 should_render = true;
             },
             BareKey::Up if key.has_no_modifiers() => {
-                self.new_session_info.handle_key(key);
+                self.new_session_info.handle_key(key, self.is_welcome_screen);
                 should_render = true;
             },
             BareKey::Enter if key.has_no_modifiers() => {
@@ -219,12 +219,12 @@ impl State {
                 if character == '\n' {
                     self.handle_selection();
                 } else {
-                    self.new_session_info.handle_key(key);
+                    self.new_session_info.handle_key(key, self.is_welcome_screen);
                 }
                 should_render = true;
             },
             BareKey::Backspace if key.has_no_modifiers() => {
-                self.new_session_info.handle_key(key);
+                self.new_session_info.handle_key(key, self.is_welcome_screen);
                 should_render = true;
             },
             BareKey::Char('w') if key.has_modifiers(&[KeyModifier::Ctrl]) => {
@@ -263,7 +263,7 @@ impl State {
                 should_render = true;
             },
             BareKey::Esc if key.has_no_modifiers() => {
-                self.new_session_info.handle_key(key);
+                self.new_session_info.handle_key(key, self.is_welcome_screen);
                 should_render = true;
             },
             _ => {},
