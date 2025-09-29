@@ -3,7 +3,6 @@ mod resurrectable_sessions;
 mod session_list;
 mod ui;
 use std::collections::BTreeMap;
-use uuid::Uuid;
 use zellij_tile::prelude::*;
 
 use new_session_info::NewSessionInfo;
@@ -45,7 +44,6 @@ struct State {
     colors: Colors,
     is_welcome_screen: bool,
     show_kill_all_sessions_warning: bool,
-    request_ids: Vec<String>,
     is_web_client: bool,
 }
 
@@ -69,25 +67,15 @@ impl ZellijPlugin for State {
         request_permission(&[
             PermissionType::ReadApplicationState,
             PermissionType::ChangeApplicationState,
+            PermissionType::RunCommands,
         ])
     }
 
     fn pipe(&mut self, pipe_message: PipeMessage) -> bool {
-        if pipe_message.name == "filepicker_result" {
-            match (pipe_message.payload, pipe_message.args.get("request_id")) {
-                (Some(payload), Some(request_id)) => {
-                    match self.request_ids.iter().position(|p| p == request_id) {
-                        Some(request_id_position) => {
-                            self.request_ids.remove(request_id_position);
-                            let new_session_folder = std::path::PathBuf::from(payload);
-                            self.new_session_info.new_session_folder = Some(new_session_folder);
-                        },
-                        None => {
-                            eprintln!("request id not found");
-                        },
-                    }
-                },
-                _ => {},
+        if pipe_message.name == "zoxide_result" {
+            if let Some(payload) = pipe_message.payload {
+                let new_session_folder = std::path::PathBuf::from(payload.trim());
+                self.new_session_info.new_session_folder = Some(new_session_folder);
             }
             true
         } else {
@@ -240,26 +228,22 @@ impl State {
                 should_render = true;
             },
             BareKey::Char('f') if key.has_modifiers(&[KeyModifier::Ctrl]) => {
-                let request_id = Uuid::new_v4();
-                let mut config = BTreeMap::new();
-                let mut args = BTreeMap::new();
-                self.request_ids.push(request_id.to_string());
-                // we insert this into the config so that a new plugin will be opened (the plugin's
-                // uniqueness is determined by its name/url as well as its config)
-                config.insert("request_id".to_owned(), request_id.to_string());
-                // we also insert this into the args so that the plugin will have an easier access to
-                // it
-                args.insert("request_id".to_owned(), request_id.to_string());
-                pipe_message_to_plugin(
-                    MessageToPlugin::new("filepicker")
-                        .with_plugin_url("filepicker")
-                        .with_plugin_config(config)
-                        .new_plugin_instance_should_have_pane_title(
-                            "Select folder for the new session...",
-                        )
-                        .new_plugin_instance_should_be_focused()
-                        .with_args(args),
-                );
+                // TODO(cristian): this should be a plugin config value so users can specify what
+                // whatever they want to use.
+                let args = vec![
+                    "zellij",
+                    "action",
+                    "new-pane",
+                    "--name",
+                    "Select a directory:",
+                    "--floating",
+                    "--close-on-exit",
+                    "--",
+                    "zsh",
+                    "-c",
+                    "zoxide query --interactive | zellij pipe --name zoxide_result",
+                ];
+                run_command(&args, BTreeMap::new());
                 should_render = true;
             },
             BareKey::Char('c') if key.has_modifiers(&[KeyModifier::Ctrl]) => {
