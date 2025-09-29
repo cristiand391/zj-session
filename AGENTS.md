@@ -2,14 +2,12 @@
 
 ## Project Structure
 - Rust Zellij plugin for session management
-- Target: `wasm32-wasi` (WebAssembly)
-- Dependencies: `zellij-tile`, `ansi_term`, `chrono`, `fuzzy-matcher`, `unicode-width`, `humantime`, `uuid`
+- Target: `wasm32-wasip1` (WebAssembly)
 
 ## Build/Test Commands
-- Build: `cargo build --target wasm32-wasi`
+- Build: `cargo build`
 - Check: `cargo check`
-- Install target: `rustup target add wasm32-wasip1` (required)
-- Reload plugin: `zellij action launch-or-focus-plugin -m -s -f -- "file:target/wasm32-wasip1/debug/session-manager.wasm"`
+- Reload plugin: `zellij action launch-or-focus-plugin -m -s -f -- "file:target/wasm32-wasip1/debug/zj-session.wasm"`
 
 ## Code Style
 - **Imports**: Group external crates first, then std library, then local modules
