@@ -44,6 +44,7 @@ struct State {
     colors: Colors,
     is_welcome_screen: bool,
     show_kill_all_sessions_warning: bool,
+    show_kill_current_session_warning: bool,
     is_web_client: bool,
 }
 
@@ -145,6 +146,8 @@ impl ZellijPlugin for State {
                     render_renaming_session_screen(&new_session_name, height, width, x, y + 2);
                 } else if self.show_kill_all_sessions_warning {
                     self.render_kill_all_sessions_warning(height, width, x, y);
+                } else if self.show_kill_current_session_warning {
+                    self.render_kill_current_session_warning(height, width, x, y);
                 } else {
                     render_prompt(&self.search_term, self.colors, x, y + 2);
                     let room_for_list = height.saturating_sub(6); // search line and controls;
@@ -282,6 +285,29 @@ impl State {
                 },
                 _ => {},
             }
+        } else if self.show_kill_current_session_warning {
+            match key.bare_key {
+                BareKey::Char('y') if key.has_no_modifiers() => {
+                    if let Some(selected_session_name) = self.sessions.get_selected_session_name() {
+                        kill_sessions(&[selected_session_name]);
+                        self.reset_selected_index();
+                        self.search_term.clear();
+                        self.sessions
+                            .update_search_term(&self.search_term, &self.colors);
+                    }
+                    self.show_kill_current_session_warning = false;
+                    should_render = true;
+                },
+                BareKey::Char('n') | BareKey::Esc if key.has_no_modifiers() => {
+                    self.show_kill_current_session_warning = false;
+                    should_render = true;
+                },
+                BareKey::Char('c') if key.has_modifiers(&[KeyModifier::Ctrl]) => {
+                    self.show_kill_current_session_warning = false;
+                    should_render = true;
+                },
+                _ => {},
+            }
         } else {
             match key.bare_key {
                 BareKey::Right if key.has_no_modifiers() => {
@@ -339,12 +365,16 @@ impl State {
                     should_render = true;
                 },
                 BareKey::Delete if key.has_no_modifiers() => {
-                    if let Some(selected_session_name) = self.sessions.get_selected_session_name() {
-                        kill_sessions(&[selected_session_name]);
-                        self.reset_selected_index();
-                        self.search_term.clear();
-                        self.sessions
-                            .update_search_term(&self.search_term, &self.colors);
+                    if let Some(_selected_session_name) = self.sessions.get_selected_session_name() {
+                        if self.sessions.selected_is_current_session() {
+                            self.show_kill_current_session_warning = true;
+                        } else {
+                            kill_sessions(&[_selected_session_name]);
+                            self.reset_selected_index();
+                            self.search_term.clear();
+                            self.sessions
+                                .update_search_term(&self.search_term, &self.colors);
+                        }
                     } else {
                         self.show_error("Must select session before killing it.");
                     }
@@ -647,6 +677,33 @@ impl State {
             x + columns.saturating_sub(confirmation_text.chars().count()) / 2;
         print_text_with_coordinates(
             Text::new(warning_description_text).color_range(0, 15..16 + session_count_len),
+            warning_x_location,
+            warning_y_location,
+            None,
+            None,
+        );
+        print_text_with_coordinates(
+            Text::new(confirmation_text).color_indices(2, vec![15, 17]),
+            confirmation_x_location,
+            confirmation_y_location,
+            None,
+            None,
+        );
+    }
+    fn render_kill_current_session_warning(&self, rows: usize, columns: usize, x: usize, y: usize) {
+        if rows == 0 || columns == 0 {
+            return;
+        }
+        let warning_description_text = "This will delete the current session";
+        let confirmation_text = "Are you sure? (y/n)";
+        let warning_y_location = y + (rows / 2).saturating_sub(1);
+        let confirmation_y_location = y + (rows / 2) + 1;
+        let warning_x_location =
+            x + columns.saturating_sub(warning_description_text.chars().count()) / 2;
+        let confirmation_x_location =
+            x + columns.saturating_sub(confirmation_text.chars().count()) / 2;
+        print_text_with_coordinates(
+            Text::new(warning_description_text),
             warning_x_location,
             warning_y_location,
             None,
