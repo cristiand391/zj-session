@@ -1,4 +1,13 @@
-# 0.1.0 (2025-09-29)
+# [0.2.0](https://github.com/cristiand391/zj-session/compare/0.1.0...0.2.0) (2025-10-01)
+
+
+### Features
+
+* prompt before deleting the current session ([b3cbf65](https://github.com/cristiand391/zj-session/commit/b3cbf655b9af8700c502cc4c88bab4d276726c98))
+
+
+
+# [0.1.0](https://github.com/cristiand391/zj-session/compare/b46e6ef9ae4219d008cdd2d04da76cd527aeb10e...0.1.0) (2025-09-29)
 
 
 ### Bug Fixes
