@@ -1,3 +1,12 @@
+## [0.2.1](https://github.com/cristiand391/zj-session/compare/0.2.0...0.2.1) (2025-10-18)
+
+
+### Bug Fixes
+
+* **new-session:** user layouts are rendered first ([6afc0e2](https://github.com/cristiand391/zj-session/commit/6afc0e218b9fbb7f8eabf7d73e42f0cbd37712a7))
+
+
+
 # [0.2.0](https://github.com/cristiand391/zj-session/compare/0.1.0...0.2.0) (2025-10-01)
 
 
