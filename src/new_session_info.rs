@@ -257,6 +257,7 @@ impl LayoutList {
     pub fn update_layout_list(&mut self, layout_list: Vec<LayoutInfo>) {
         let old_layout_length = self.layout_list.len();
         self.layout_list = layout_list;
+        self.layout_list.sort_by_key(|layout| layout.is_builtin());
         if old_layout_length != self.layout_list.len() {
             // honestly, this is just the UX choice that sucks the least...
             self.clear_selection();
