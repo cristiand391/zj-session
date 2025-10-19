@@ -1,6 +1,6 @@
 [package]
 name = "zj-session"
-version = "0.2.1"
+version = "0.3.0"
 authors = ["Cristian Dominguez", "Aram Drevekenin <aram@poor.dev>"]
 edition = "2018"
 

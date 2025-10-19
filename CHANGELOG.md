@@ -1,3 +1,12 @@
+# [0.3.0](https://github.com/cristiand391/zj-session/compare/0.2.1...0.3.0) (2025-10-19)
+
+
+### Features
+
+* allow headless session switching ([558b0f7](https://github.com/cristiand391/zj-session/commit/558b0f763914041834f4d70098c30607625a59b3))
+
+
+
 ## [0.2.1](https://github.com/cristiand391/zj-session/compare/0.2.0...0.2.1) (2025-10-18)
 
 
