@@ -79,6 +79,43 @@ impl ZellijPlugin for State {
                 self.new_session_info.new_session_folder = Some(new_session_folder);
             }
             true
+        // NOTE(cristian): sometimes you need to send the pipe msg twice to switch sessions.
+        // I'm pretty sure this is a core zellij issue with the `SessionUpdate` event sometimes
+        // taking a bit to be sent (or sent twice too, saw this in the sesion plugin since early
+        // days)
+        //
+        // `self.sessions` is always set on `SessionUpdate` so it's not possible to cache the list.
+        } else if pipe_message.name == "switch_to_next_session" {
+            //
+            // Cycle to the next session in alphabetical order, ignoring the UI's current-first sorting.
+            // This ensures consistent cycling through all sessions (e.g., A -> B -> C -> A) instead of
+            // getting stuck between the first two due to re-sorting after each switch.
+            let mut all_sessions: Vec<String> = self.sessions.session_ui_infos.iter().map(|s| s.name.clone()).collect();
+            all_sessions.sort();
+            let current_name = self.session_name.as_ref().map(|s| s.as_str()).unwrap_or("");
+            if let Some(current_pos) = all_sessions.iter().position(|n| n == current_name) {
+                let len = all_sessions.len();
+                if len > 1 {
+                    let next_pos = (current_pos + 1) % len;
+                    let next_name = &all_sessions[next_pos];
+                    switch_session_with_focus(next_name, None, None);
+                }
+            }
+            true
+        } else if pipe_message.name == "switch_to_prev_session" {
+            // Cycle to the previous session in alphabetical order, for consistency with next.
+            let mut all_sessions: Vec<String> = self.sessions.session_ui_infos.iter().map(|s| s.name.clone()).collect();
+            all_sessions.sort();
+            let current_name = self.session_name.as_ref().map(|s| s.as_str()).unwrap_or("");
+            if let Some(current_pos) = all_sessions.iter().position(|n| n == current_name) {
+                let len = all_sessions.len();
+                if len > 1 {
+                    let prev_pos = if current_pos == 0 { len - 1 } else { current_pos - 1 };
+                    let prev_name = &all_sessions[prev_pos];
+                    switch_session_with_focus(prev_name, None, None);
+                }
+            }
+            true
         } else {
             false
         }
